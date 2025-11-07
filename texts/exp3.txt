@@ -1,0 +1,48 @@
+import pandas as pd
+
+df = pd.read_csv('/content/uncleaned_data.csv')
+# Remove duplicates
+df.drop_duplicates(subset=df.columns.difference(['Patient_ID']),inplace=True)
+# Drop irrelevant feature
+df.drop('Admission_Date', axis=1, inplace=True)
+# Rename complex
+df.rename(columns={'Lab_Results (Glucose)': 'Glucose_mg_dL'}, inplace=True)
+# Standardization
+import numpy as np
+
+df.replace(['NA', 'NaN', 'Missing', ''], np.nan, inplace=True) #Replaced because this are inconsistent ways as pandas can only recognize np.nan as missing when using functions like: df.isna() df.dropna() df.fillna() So by standardizing everything to np.nan, you make your data clean and uniform for analysis.
+# Conversions
+df['Blood_Pressure'] = pd.to_numeric(df['Blood_Pressure'])
+df['Glucose_mg_dL'] = df['Glucose_mg_dL'].astype(str).str.replace(' mg/dL', '', regex=False)
+df['Glucose_mg_dL'] = pd.to_numeric(df['Glucose_mg_dL'])
+# df['Age_Years'].hist()
+# df['Weight_kg'].hist()
+import matplotlib.pyplot as plt
+
+df['Age_Years'].hist()
+plt.title('Age Distribution')
+plt.xlabel('Age (Years)')
+plt.ylabel('Count')
+plt.show()
+
+df['Weight_kg'].hist()
+plt.title('Weight Distribution')
+plt.xlabel('Weight (kg)')
+plt.ylabel('Count')
+plt.show()
+
+# Correct erroneous entries
+df.loc[(df['Age_Years'] <= 0) | (df['Age_Years'] >= 110), 'Age_Years'] = np.nan
+df.loc[(df['Weight_kg'] <= 0) | (df['Weight_kg'] >= 200), 'Weight_kg'] = np.nan
+# Interpolation
+median_imputer = df.median(numeric_only=True)    # Compute median for each numeric column and Store those median values in a variable
+df.fillna(median_imputer, inplace=True) # Replace missing numeric values with medians
+df.head(4)
+mode_diagnosis = df['Diagnosis'].mode()[0]   # Get the most frequent (mode) value in the Diagnosis column #returns a Series of the most common value(s) takes the first (and usually only) most frequent value
+df['Diagnosis'] = df['Diagnosis'].fillna(mode_diagnosis)
+# Standardization
+df['Gender'] = df['Gender'].replace({'F': 'Female', 'M': 'Male', 'Other': 'Unknown'})
+df['Insurance_Type'] = df['Insurance_Type'].replace({'Govt': 'Public'})
+df['Gender'] = df['Gender'].astype('category')
+df['Insurance_Type'] = df['Insurance_Type'].astype('category')
+df['Diagnosis'] = df['Diagnosis'].astype('category')
