@@ -1,26 +1,25 @@
-const express = require("express");
-const fs = require("fs");
-const path = require("path");
+import express from "express";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
-// Serve a text file when user visits /exp3, /exp4, etc.
 app.get("/:expId", (req, res) => {
-  const expId = req.params.expId; // e.g. "exp3"
+  const expId = req.params.expId;
   const filePath = path.join(__dirname, "texts", `${expId}.txt`);
 
   fs.readFile(filePath, "utf8", (err, data) => {
-    if (err) {
-      return res.status(404).send("File not found.");
-    }
+    if (err) return res.status(404).send("File not found.");
     res.type("text/plain").send(data);
   });
 });
 
-// Home route
 app.get("/", (req, res) => {
-  res.send("Welcome! Try /exp3 or /exp4 in the URL.");
+  res.send("Welcome! Try /exp3 or /exp4.");
 });
 
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+export default app;
